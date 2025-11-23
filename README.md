@@ -30,7 +30,7 @@ StreamFlow adalah aplikasi live streaming yang memungkinkan kamu melakukan live 
 Untuk instalasi otomatis, jalankan perintah berikut:
 
 ```bash
-curl -o install.sh https://raw.githubusercontent.com/bangtutorial/streamflow/main/install.sh && chmod +x install.sh && ./install.sh
+curl -o install.sh https://raw.githubusercontent.com/sakirsyarian/streamflow/main/install.sh && chmod +x install.sh && ./install.sh
 ```
 
 ## 🔧 Manual Installation
@@ -38,33 +38,39 @@ curl -o install.sh https://raw.githubusercontent.com/bangtutorial/streamflow/mai
 ### 1. Persiapan Server
 
 Update sistem operasi:
+
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
 Install Node.js:
+
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt-get install -y nodejs
 ```
 
 Verifikasi instalasi Node.js:
+
 ```bash
 node --version
 npm --version
 ```
 
 Install FFmpeg:
+
 ```bash
 sudo apt install ffmpeg -y
 ```
 
 Verifikasi instalasi FFmpeg:
+
 ```bash
 ffmpeg -version
 ```
 
 Install Git:
+
 ```bash
 sudo apt install git -y
 ```
@@ -72,31 +78,37 @@ sudo apt install git -y
 ### 2. Setup Project StreamFlow
 
 Clone repository:
+
 ```bash
 git clone https://github.com/bangtutorial/streamflow
 ```
 
 Masuk ke direktori project:
+
 ```bash
 cd streamflow
 ```
 
 Install Paket Node.JS:
+
 ```bash
 npm install
 ```
 
 Generate Secret Key:
+
 ```bash
 node generate-secret.js
 ```
 
 Konfigurasi port (opsional):
+
 ```bash
 nano .env
 ```
 
 Jalankan aplikasi:
+
 ```bash
 npm run dev
 ```
@@ -106,6 +118,7 @@ npm run dev
 **PENTING: Buka port SSH terlebih dahulu untuk menghindari terputusnya koneksi!**
 
 Buka port SSH (biasanya port 22):
+
 ```bash
 sudo ufw allow ssh
 # atau jika menggunakan port custom SSH
@@ -113,21 +126,25 @@ sudo ufw allow ssh
 ```
 
 Buka port aplikasi (default: 7575):
+
 ```bash
 sudo ufw allow 7575
 ```
 
 Verifikasi aturan firewall sebelum mengaktifkan:
+
 ```bash
 sudo ufw status verbose
 ```
 
 Aktifkan firewall:
+
 ```bash
 sudo ufw enable
 ```
 
 Verifikasi status firewall setelah aktif:
+
 ```bash
 sudo ufw status
 ```
@@ -135,6 +152,7 @@ sudo ufw status
 ### 4. Install Process Manager
 
 Install PM2 untuk mengelola aplikasi:
+
 ```bash
 sudo npm install -g pm2
 ```
@@ -142,11 +160,13 @@ sudo npm install -g pm2
 ### 5. Menjalankan Aplikasi
 
 Jalankan aplikasi dengan PM2:
+
 ```bash
 pm2 start app.js --name streamflow
 ```
 
 **Setup Auto-Restart saat Server Reboot:**
+
 ```bash
 # Simpan konfigurasi PM2 saat ini
 pm2 save
@@ -162,6 +182,7 @@ pm2 save
 ```
 
 **Perintah PM2 Berguna:**
+
 ```bash
 # Lihat status aplikasi
 pm2 status
@@ -180,12 +201,12 @@ pm2 monit
 ```
 
 Akses aplikasi melalui browser:
+
 ```
 http://IP_SERVER:PORT
 ```
 
 Contoh: `http://88.12.34.56:7575`
-
 
 ## 🔐 Reset Password
 
@@ -200,21 +221,25 @@ cd streamflow && node reset-password.js
 Untuk memastikan scheduled streaming berjalan dengan waktu yang akurat:
 
 ### Cek timezone saat ini:
+
 ```bash
 timedatectl status
 ```
 
 ### Lihat daftar timezone tersedia:
+
 ```bash
 timedatectl list-timezones | grep Asia
 ```
 
 ### Set timezone ke WIB (Jakarta):
+
 ```bash
 sudo timedatectl set-timezone Asia/Jakarta
 ```
 
 ### Restart aplikasi setelah mengubah timezone:
+
 ```bash
 pm2 restart streamflow
 ```
@@ -224,6 +249,7 @@ pm2 restart streamflow
 ### 1. Persiapan Environment
 
 Buat file `.env` di root project:
+
 ```env
 PORT=7575
 SESSION_SECRET=your_random_secret_here
@@ -241,6 +267,7 @@ Akses aplikasi: [http://localhost:7575](http://localhost:7575)
 ### 3. Data Persistence
 
 Data akan tersimpan secara otomatis di:
+
 - Database: `db/`
 - Logs: `logs/`
 - Upload files: `public/uploads/`
@@ -254,11 +281,13 @@ docker-compose exec app node reset-password.js
 ## 🔫 Troubleshooting
 
 ### Permission Error
+
 ```bash
 chmod -R 755 public/uploads/
 ```
 
 ### Port Already in Use
+
 ```bash
 # Cek proses yang menggunakan port
 sudo lsof -i :7575
@@ -268,6 +297,7 @@ sudo kill -9 <PID>
 ```
 
 ### Database Error
+
 ```bash
 # Reset database (PERINGATAN: akan menghapus semua data)
 rm db/*.db
@@ -279,6 +309,7 @@ pm2 restart streamflow
 ### Docker Troubleshooting
 
 **Tidak bisa login:**
+
 - Pastikan `NODE_ENV=development` untuk akses HTTP
 - Periksa permission folder:
   ```bash
@@ -287,6 +318,7 @@ pm2 restart streamflow
 - Pastikan `SESSION_SECRET` tidak berubah
 
 **Production (HTTPS):**
+
 - Set `NODE_ENV=production`
 - Akses melalui HTTPS untuk cookie session
 
@@ -299,5 +331,5 @@ pm2 restart streamflow
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/bangtutorial/streamflow/blob/main/LICENSE)
 
 ---
-© 2025 - [Bang Tutorial](https://youtube.com/bangtutorial)
 
+© 2025 - [Bang Tutorial](https://youtube.com/bangtutorial)

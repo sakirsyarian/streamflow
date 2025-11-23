@@ -22,7 +22,7 @@ echo "🎬 Installing FFmpeg dan Git..."
 sudo apt install ffmpeg git -y
 
 echo "📥 Clone repository..."
-git clone https://github.com/bangtutorial/streamflow
+git clone https://github.com/sakirsyarian/streamflow
 cd streamflow
 
 echo "⚙️ Installing dependencies..."
