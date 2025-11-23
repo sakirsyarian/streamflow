@@ -2391,6 +2391,80 @@ app.get('/api/server-time', (req, res) => {
     formattedTime: formattedTime
   });
 });
+
+async function cleanupTempFiles() {
+  const tempDir = path.join(__dirname, 'temp');
+
+  try {
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+      console.log('[Cleanup] Created temp directory');
+      return;
+    }
+
+    const files = await fs.promises.readdir(tempDir);
+    let cleanedCount = 0;
+
+    for (const file of files) {
+      if (file.startsWith('playlist_') && file.endsWith('.txt')) {
+        const filePath = path.join(tempDir, file);
+        try {
+          await fs.promises.unlink(filePath);
+          cleanedCount++;
+        } catch (unlinkError) {
+          console.error(`[Cleanup] Error deleting ${file}:`, unlinkError.message);
+        }
+      }
+    }
+
+    if (cleanedCount > 0) {
+      console.log(`[Cleanup] Removed ${cleanedCount} orphaned temp file(s)`);
+    } else {
+      console.log('[Cleanup] No orphaned temp files found');
+    }
+  } catch (error) {
+    console.error('[Cleanup] Error during temp file cleanup:', error.message);
+  }
+}
+
+async function periodicTempCleanup() {
+  const tempDir = path.join(__dirname, 'temp');
+
+  try {
+    if (!fs.existsSync(tempDir)) {
+      return;
+    }
+
+    const files = await fs.promises.readdir(tempDir);
+    const now = Date.now();
+    let cleanedCount = 0;
+
+    for (const file of files) {
+      if (file.startsWith('playlist_') && file.endsWith('.txt')) {
+        const filePath = path.join(tempDir, file);
+        try {
+          const stats = await fs.promises.stat(filePath);
+          const ageHours = (now - stats.mtimeMs) / (1000 * 60 * 60);
+
+          if (ageHours > 24) {
+            await fs.promises.unlink(filePath);
+            cleanedCount++;
+            console.log(`[Cleanup] Removed old temp file: ${file} (age: ${ageHours.toFixed(1)}h)`);
+          }
+        } catch (fileError) {
+          console.error(`[Cleanup] Error processing ${file}:`, fileError.message);
+        }
+      }
+    }
+
+    if (cleanedCount > 0) {
+      console.log(`[Cleanup] Periodic cleanup removed ${cleanedCount} old temp file(s)`);
+    }
+  } catch (error) {
+    console.error('[Cleanup] Error during periodic cleanup:', error.message);
+  }
+}
+
 const server = app.listen(port, '0.0.0.0', async () => {
   const ipAddresses = getLocalIpAddresses();
   console.log(`StreamFlow running at:`);
@@ -2401,6 +2475,9 @@ const server = app.listen(port, '0.0.0.0', async () => {
   } else {
     console.log(`  http://localhost:${port}`);
   }
+
+  await cleanupTempFiles();
+
   try {
     const streams = await Stream.findAll(null, 'live');
     if (streams && streams.length > 0) {
@@ -2418,6 +2495,9 @@ const server = app.listen(port, '0.0.0.0', async () => {
   } catch (error) {
     console.error('Failed to sync stream statuses:', error);
   }
+
+  setInterval(periodicTempCleanup, 60 * 60 * 1000);
+  console.log('[Cleanup] Periodic cleanup scheduled (every 1 hour)');
 });
 
 server.timeout = 30 * 60 * 1000;
