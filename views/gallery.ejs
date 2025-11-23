@@ -797,6 +797,34 @@
               } else if (xhr.status === 413) {
                 failedFiles.push(file.name + ' (File too large)');
                 updateFileProgress(currentFileIndex, 'error', 0);
+              } else if (xhr.status === 408) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  failedFiles.push(file.name + ' (Processing timeout - video might be corrupted)');
+                  updateFileProgress(currentFileIndex, 'error', 0);
+                } catch (e) {
+                  failedFiles.push(file.name + ' (Processing timeout)');
+                  updateFileProgress(currentFileIndex, 'error', 0);
+                }
+              } else if (xhr.status === 429) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  showToast('error', response.error || 'Too many upload requests');
+                  uploadProgressStatus.textContent = 'Upload stopped: Rate limit exceeded';
+                  console.log('[Upload] Rate limit details:', response);
+                } catch (e) {
+                  showToast('error', 'Too many upload requests. Please wait.');
+                }
+                return;
+              } else if (xhr.status === 507) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  showToast('error', response.error || 'Insufficient disk space on server');
+                  uploadProgressStatus.textContent = 'Upload stopped: Server disk space full';
+                } catch (e) {
+                  showToast('error', 'Server disk space insufficient');
+                }
+                return;
               } else {
                 failedFiles.push(file.name);
                 updateFileProgress(currentFileIndex, 'error', 0);

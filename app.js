@@ -246,6 +246,77 @@ const loginLimiter = rateLimit({
     return response.statusCode < 400;
   }
 });
+
+const uploadRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many upload requests from this IP. Maximum 10 uploads per hour.',
+    retryAfter: '1 hour'
+  },
+  skip: (req) => {
+    if (process.env.NODE_ENV === 'development' && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1')) {
+      return true;
+    }
+    return false;
+  },
+  handler: (req, res) => {
+    console.warn(`[Rate Limit] Upload limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      success: false,
+      error: 'Too many upload requests. Maximum 10 uploads per hour.',
+      retryAfter: '1 hour',
+      details: 'Please wait before uploading more videos.'
+    });
+  }
+});
+
+const activeUploads = new Map();
+
+const concurrentUploadLimiter = (req, res, next) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
+  }
+
+  const currentCount = activeUploads.get(userId) || 0;
+  const MAX_CONCURRENT = 3;
+
+  if (currentCount >= MAX_CONCURRENT) {
+    console.warn(`[Rate Limit] Concurrent upload limit exceeded for user: ${userId}`);
+    return res.status(429).json({
+      success: false,
+      error: `Maximum concurrent uploads (${MAX_CONCURRENT}) reached.`,
+      details: 'Please wait for current uploads to complete before starting new ones.',
+      currentUploads: currentCount
+    });
+  }
+
+  activeUploads.set(userId, currentCount + 1);
+  console.log(`[Rate Limit] User ${userId} active uploads: ${currentCount + 1}/${MAX_CONCURRENT}`);
+
+  const cleanup = () => {
+    const count = activeUploads.get(userId) || 0;
+    if (count > 0) {
+      activeUploads.set(userId, count - 1);
+      console.log(`[Rate Limit] User ${userId} active uploads: ${count - 1}/${MAX_CONCURRENT}`);
+    }
+  };
+
+  res.on('finish', cleanup);
+  res.on('close', cleanup);
+  res.on('error', cleanup);
+
+  next();
+};
+
 const loginDelayMiddleware = async (req, res, next) => {
   await new Promise(resolve => setTimeout(resolve, 1000));
   next();
@@ -1188,109 +1259,267 @@ app.post('/upload/video', isAuthenticated, uploadVideo.single('video'), async (r
     });
   }
 });
-app.post('/api/videos/upload', isAuthenticated, (req, res, next) => {
+const checkDiskSpace = async (req, res, next) => {
+  try {
+    const stats = await systemMonitor.getSystemStats();
+    const diskUsagePercent = stats.disk.usagePercent;
+
+    if (diskUsagePercent >= 90) {
+      console.warn(`[Upload] Disk space critically low: ${diskUsagePercent}% used`);
+      return res.status(507).json({
+        success: false,
+        error: 'Insufficient disk space on server. Please try again later or contact support.',
+        details: {
+          message: 'Server disk usage is critically high',
+          diskUsage: `${diskUsagePercent}%`,
+          freeSpace: stats.disk.free
+        }
+      });
+    }
+
+    if (diskUsagePercent >= 85) {
+      console.warn(`[Upload] Disk space low: ${diskUsagePercent}% used`);
+    }
+
+    console.log(`[Upload] Disk check passed: ${diskUsagePercent}% used, ${stats.disk.free} free`);
+    next();
+  } catch (error) {
+    console.error('[Upload] Error checking disk space:', error);
+    console.warn('[Upload] Allowing upload to proceed despite disk check failure (fail-open policy)');
+    next();
+  }
+};
+
+function ffprobeWithTimeout(filePath, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    let isResolved = false;
+
+    const timeout = setTimeout(() => {
+      if (!isResolved) {
+        isResolved = true;
+        const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.error(`[FFmpeg] ffprobe timeout after ${elapsedTime}s for file: ${filePath}`);
+        reject(new Error(`Video processing timeout (${timeoutMs / 1000}s). The video might be corrupted or in an unsupported format.`));
+      }
+    }, timeoutMs);
+
+    console.log(`[FFmpeg] Starting ffprobe for: ${path.basename(filePath)}`);
+
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      clearTimeout(timeout);
+
+      if (isResolved) {
+        console.warn('[FFmpeg] ffprobe completed but already timed out');
+        return;
+      }
+
+      isResolved = true;
+      const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+
+      if (err) {
+        console.error(`[FFmpeg] ffprobe error after ${elapsedTime}s:`, err.message);
+        reject(err);
+      } else {
+        console.log(`[FFmpeg] ffprobe completed in ${elapsedTime}s`);
+        resolve(metadata);
+      }
+    });
+  });
+}
+
+function generateThumbnailWithTimeout(videoPath, thumbnailFilename, outputFolder, timeoutMs = 120000) {
+  return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    let isResolved = false;
+    let ffmpegProcess = null;
+
+    const timeout = setTimeout(() => {
+      if (!isResolved) {
+        isResolved = true;
+        const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.error(`[FFmpeg] Thumbnail generation timeout after ${elapsedTime}s for: ${path.basename(videoPath)}`);
+
+        if (ffmpegProcess) {
+          try {
+            ffmpegProcess.kill('SIGKILL');
+            console.log('[FFmpeg] Killed hung thumbnail generation process');
+          } catch (killError) {
+            console.error('[FFmpeg] Error killing process:', killError);
+          }
+        }
+
+        reject(new Error(`Thumbnail generation timeout (${timeoutMs / 1000}s). The video might be corrupted or too large.`));
+      }
+    }, timeoutMs);
+
+    console.log(`[FFmpeg] Starting thumbnail generation for: ${path.basename(videoPath)}`);
+
+    ffmpegProcess = ffmpeg(videoPath)
+      .screenshots({
+        timestamps: ['10%'],
+        filename: thumbnailFilename,
+        folder: outputFolder,
+        size: '854x480'
+      })
+      .on('end', () => {
+        clearTimeout(timeout);
+
+        if (isResolved) {
+          console.warn('[FFmpeg] Thumbnail generation completed but already timed out');
+          return;
+        }
+
+        isResolved = true;
+        const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`[FFmpeg] Thumbnail generated in ${elapsedTime}s`);
+        resolve();
+      })
+      .on('error', (err) => {
+        clearTimeout(timeout);
+
+        if (isResolved) {
+          console.warn('[FFmpeg] Thumbnail error but already timed out');
+          return;
+        }
+
+        isResolved = true;
+        const elapsedTime = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.error(`[FFmpeg] Thumbnail generation error after ${elapsedTime}s:`, err.message);
+        reject(err);
+      });
+  });
+}
+
+app.post('/api/videos/upload', uploadRateLimiter, isAuthenticated, concurrentUploadLimiter, checkDiskSpace, (req, res, next) => {
   uploadVideo.single('video')(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(413).json({ 
-          success: false, 
-          error: 'File too large. Maximum size is 10GB.' 
+        return res.status(413).json({
+          success: false,
+          error: 'File too large. Maximum size is 10GB.'
         });
       }
       if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Unexpected file field.' 
+        return res.status(400).json({
+          success: false,
+          error: 'Unexpected file field.'
         });
       }
-      return res.status(400).json({ 
-        success: false, 
-        error: err.message 
+      return res.status(400).json({
+        success: false,
+        error: err.message
       });
     }
     next();
   });
 }, async (req, res) => {
+  let uploadedFilePath = null;
+  let thumbnailPath = null;
+
   try {
     if (!req.file) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'No video file provided' 
+      return res.status(400).json({
+        success: false,
+        error: 'No video file provided'
       });
     }
+
     let title = path.parse(req.file.originalname).name;
     const filePath = `/uploads/videos/${req.file.filename}`;
     const fullFilePath = path.join(__dirname, 'public', filePath);
+    uploadedFilePath = fullFilePath;
     const fileSize = req.file.size;
-    await new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(fullFilePath, (err, metadata) => {
-        if (err) {
-          console.error('Error extracting metadata:', err);
-          return reject(err);
-        }
-        const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
-        const duration = metadata.format.duration || 0;
-        const format = metadata.format.format_name || '';
-        const resolution = videoStream ? `${videoStream.width}x${videoStream.height}` : '';
-        const bitrate = metadata.format.bit_rate ?
-          Math.round(parseInt(metadata.format.bit_rate) / 1000) :
-          null;
-        let fps = null;
-        if (videoStream && videoStream.avg_frame_rate) {
-          const fpsRatio = videoStream.avg_frame_rate.split('/');
-          if (fpsRatio.length === 2 && parseInt(fpsRatio[1]) !== 0) {
-            fps = Math.round((parseInt(fpsRatio[0]) / parseInt(fpsRatio[1]) * 100)) / 100;
-          } else {
-            fps = parseInt(fpsRatio[0]) || null;
-          }
-        }
-        const thumbnailFilename = `thumb-${path.parse(req.file.filename).name}.jpg`;
-        const thumbnailPath = `/uploads/thumbnails/${thumbnailFilename}`;
-        const fullThumbnailPath = path.join(__dirname, 'public', thumbnailPath);
-        ffmpeg(fullFilePath)
-          .screenshots({
-            timestamps: ['10%'],
-            filename: thumbnailFilename,
-            folder: path.join(__dirname, 'public', 'uploads', 'thumbnails'),
-            size: '854x480'
-          })
-          .on('end', async () => {
-            try {
-              const videoData = {
-                title,
-                filepath: filePath,
-                thumbnail_path: thumbnailPath,
-                file_size: fileSize,
-                duration,
-                format,
-                resolution,
-                bitrate,
-                fps,
-                user_id: req.session.userId
-              };
-              const video = await Video.create(videoData);
-              res.json({
-                success: true,
-                message: 'Video uploaded successfully',
-                video
-              });
-              resolve();
-            } catch (dbError) {
-              console.error('Database error:', dbError);
-              reject(dbError);
-            }
-          })
-          .on('error', (err) => {
-            console.error('Error creating thumbnail:', err);
-            reject(err);
-          });
-      });
+
+    console.log(`[Upload] Processing video: ${req.file.originalname} (${(fileSize / 1024 / 1024).toFixed(2)} MB)`);
+
+    const metadata = await ffprobeWithTimeout(fullFilePath, 120000);
+
+    const videoStream = metadata.streams.find(stream => stream.codec_type === 'video');
+    if (!videoStream) {
+      throw new Error('No video stream found in file. The file might be corrupted or not a valid video.');
+    }
+
+    const duration = metadata.format.duration || 0;
+    const format = metadata.format.format_name || '';
+    const resolution = videoStream ? `${videoStream.width}x${videoStream.height}` : '';
+    const bitrate = metadata.format.bit_rate ?
+      Math.round(parseInt(metadata.format.bit_rate) / 1000) :
+      null;
+
+    let fps = null;
+    if (videoStream && videoStream.avg_frame_rate) {
+      const fpsRatio = videoStream.avg_frame_rate.split('/');
+      if (fpsRatio.length === 2 && parseInt(fpsRatio[1]) !== 0) {
+        fps = Math.round((parseInt(fpsRatio[0]) / parseInt(fpsRatio[1]) * 100)) / 100;
+      } else {
+        fps = parseInt(fpsRatio[0]) || null;
+      }
+    }
+
+    const thumbnailFilename = `thumb-${path.parse(req.file.filename).name}.jpg`;
+    const thumbnailRelativePath = `/uploads/thumbnails/${thumbnailFilename}`;
+    const thumbnailFullPath = path.join(__dirname, 'public', thumbnailRelativePath);
+    thumbnailPath = thumbnailFullPath;
+
+    await generateThumbnailWithTimeout(
+      fullFilePath,
+      thumbnailFilename,
+      path.join(__dirname, 'public', 'uploads', 'thumbnails'),
+      120000
+    );
+
+    const videoData = {
+      title,
+      filepath: filePath,
+      thumbnail_path: thumbnailRelativePath,
+      file_size: fileSize,
+      duration,
+      format,
+      resolution,
+      bitrate,
+      fps,
+      user_id: req.session.userId
+    };
+
+    const video = await Video.create(videoData);
+
+    console.log(`[Upload] Video processed successfully: ${video.id}`);
+
+    res.json({
+      success: true,
+      message: 'Video uploaded successfully',
+      video
     });
+
   } catch (error) {
-    console.error('Upload error details:', error);
-    res.status(500).json({ 
-      error: 'Failed to upload video',
-      details: error.message 
+    console.error('[Upload] Error processing video:', error.message);
+
+    if (uploadedFilePath && fs.existsSync(uploadedFilePath)) {
+      try {
+        fs.unlinkSync(uploadedFilePath);
+        console.log(`[Upload] Cleaned up failed upload: ${uploadedFilePath}`);
+      } catch (cleanupError) {
+        console.error('[Upload] Error cleaning up video file:', cleanupError);
+      }
+    }
+
+    if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+      try {
+        fs.unlinkSync(thumbnailPath);
+        console.log(`[Upload] Cleaned up partial thumbnail: ${thumbnailPath}`);
+      } catch (cleanupError) {
+        console.error('[Upload] Error cleaning up thumbnail:', cleanupError);
+      }
+    }
+
+    const isTimeout = error.message && error.message.includes('timeout');
+    const statusCode = isTimeout ? 408 : 400;
+
+    res.status(statusCode).json({
+      success: false,
+      error: isTimeout ? 'Video processing timeout' : 'Failed to process video',
+      details: error.message
     });
   }
 });
