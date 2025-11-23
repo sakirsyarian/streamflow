@@ -1188,24 +1188,55 @@ app.post('/upload/video', isAuthenticated, uploadVideo.single('video'), async (r
     });
   }
 });
-app.post('/api/videos/upload', isAuthenticated, (req, res, next) => {
+const checkDiskSpace = async (req, res, next) => {
+  try {
+    const stats = await systemMonitor.getSystemStats();
+    const diskUsagePercent = stats.disk.usagePercent;
+
+    if (diskUsagePercent >= 90) {
+      console.warn(`[Upload] Disk space critically low: ${diskUsagePercent}% used`);
+      return res.status(507).json({
+        success: false,
+        error: 'Insufficient disk space on server. Please try again later or contact support.',
+        details: {
+          message: 'Server disk usage is critically high',
+          diskUsage: `${diskUsagePercent}%`,
+          freeSpace: stats.disk.free
+        }
+      });
+    }
+
+    if (diskUsagePercent >= 85) {
+      console.warn(`[Upload] Disk space low: ${diskUsagePercent}% used`);
+    }
+
+    console.log(`[Upload] Disk check passed: ${diskUsagePercent}% used, ${stats.disk.free} free`);
+    next();
+  } catch (error) {
+    console.error('[Upload] Error checking disk space:', error);
+    console.warn('[Upload] Allowing upload to proceed despite disk check failure (fail-open policy)');
+    next();
+  }
+};
+
+app.post('/api/videos/upload', isAuthenticated, checkDiskSpace, (req, res, next) => {
   uploadVideo.single('video')(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(413).json({ 
-          success: false, 
-          error: 'File too large. Maximum size is 10GB.' 
+        return res.status(413).json({
+          success: false,
+          error: 'File too large. Maximum size is 10GB.'
         });
       }
       if (err.code === 'LIMIT_UNEXPECTED_FILE') {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'Unexpected file field.' 
+        return res.status(400).json({
+          success: false,
+          error: 'Unexpected file field.'
         });
       }
-      return res.status(400).json({ 
-        success: false, 
-        error: err.message 
+      return res.status(400).json({
+        success: false,
+        error: err.message
       });
     }
     next();
