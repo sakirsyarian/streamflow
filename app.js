@@ -246,6 +246,77 @@ const loginLimiter = rateLimit({
     return response.statusCode < 400;
   }
 });
+
+const uploadRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    error: 'Too many upload requests from this IP. Maximum 10 uploads per hour.',
+    retryAfter: '1 hour'
+  },
+  skip: (req) => {
+    if (process.env.NODE_ENV === 'development' && (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1')) {
+      return true;
+    }
+    return false;
+  },
+  handler: (req, res) => {
+    console.warn(`[Rate Limit] Upload limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      success: false,
+      error: 'Too many upload requests. Maximum 10 uploads per hour.',
+      retryAfter: '1 hour',
+      details: 'Please wait before uploading more videos.'
+    });
+  }
+});
+
+const activeUploads = new Map();
+
+const concurrentUploadLimiter = (req, res, next) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
+  }
+
+  const currentCount = activeUploads.get(userId) || 0;
+  const MAX_CONCURRENT = 3;
+
+  if (currentCount >= MAX_CONCURRENT) {
+    console.warn(`[Rate Limit] Concurrent upload limit exceeded for user: ${userId}`);
+    return res.status(429).json({
+      success: false,
+      error: `Maximum concurrent uploads (${MAX_CONCURRENT}) reached.`,
+      details: 'Please wait for current uploads to complete before starting new ones.',
+      currentUploads: currentCount
+    });
+  }
+
+  activeUploads.set(userId, currentCount + 1);
+  console.log(`[Rate Limit] User ${userId} active uploads: ${currentCount + 1}/${MAX_CONCURRENT}`);
+
+  const cleanup = () => {
+    const count = activeUploads.get(userId) || 0;
+    if (count > 0) {
+      activeUploads.set(userId, count - 1);
+      console.log(`[Rate Limit] User ${userId} active uploads: ${count - 1}/${MAX_CONCURRENT}`);
+    }
+  };
+
+  res.on('finish', cleanup);
+  res.on('close', cleanup);
+  res.on('error', cleanup);
+
+  next();
+};
+
 const loginDelayMiddleware = async (req, res, next) => {
   await new Promise(resolve => setTimeout(resolve, 1000));
   next();
@@ -1320,7 +1391,7 @@ function generateThumbnailWithTimeout(videoPath, thumbnailFilename, outputFolder
   });
 }
 
-app.post('/api/videos/upload', isAuthenticated, checkDiskSpace, (req, res, next) => {
+app.post('/api/videos/upload', uploadRateLimiter, isAuthenticated, concurrentUploadLimiter, checkDiskSpace, (req, res, next) => {
   uploadVideo.single('video')(req, res, (err) => {
     if (err) {
       if (err.code === 'LIMIT_FILE_SIZE') {
