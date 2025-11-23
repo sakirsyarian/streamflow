@@ -797,6 +797,15 @@
               } else if (xhr.status === 413) {
                 failedFiles.push(file.name + ' (File too large)');
                 updateFileProgress(currentFileIndex, 'error', 0);
+              } else if (xhr.status === 408) {
+                try {
+                  const response = JSON.parse(xhr.responseText);
+                  failedFiles.push(file.name + ' (Processing timeout - video might be corrupted)');
+                  updateFileProgress(currentFileIndex, 'error', 0);
+                } catch (e) {
+                  failedFiles.push(file.name + ' (Processing timeout)');
+                  updateFileProgress(currentFileIndex, 'error', 0);
+                }
               } else if (xhr.status === 507) {
                 try {
                   const response = JSON.parse(xhr.responseText);
