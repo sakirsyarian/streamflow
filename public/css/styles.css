@@ -37,7 +37,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--background));
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -75,7 +75,7 @@
   border-color: transparent;
 }
 
-/* Clean up utilities */
+/* Modal Animations */
 .modal-overlay {
   backdrop-filter: blur(4px);
   transition: opacity 0.2s ease-in-out;
@@ -83,4 +83,12 @@
 
 .modal-container {
   transition: all 0.2s ease-in-out;
+}
+
+/* Light Mode Specific overrides if needed,
+   but Tailwind variables usually handle this.
+   Ensuring inputs have readable text in light mode. */
+input::placeholder, textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,26 +14,33 @@
 
   <style>
     :root {
-      --background: 240 10% 3.9%;
-      --foreground: 0 0% 98%;
-      --card: 240 10% 3.9%;
-      --card-foreground: 0 0% 98%;
-      --popover: 240 10% 3.9%;
-      --popover-foreground: 0 0% 98%;
-      --primary: 0 0% 98%;
-      --primary-foreground: 240 5.9% 10%;
-      --secondary: 240 3.7% 15.9%;
-      --secondary-foreground: 0 0% 98%;
-      --muted: 240 3.7% 15.9%;
-      --muted-foreground: 240 5% 64.9%;
-      --accent: 240 3.7% 15.9%;
-      --accent-foreground: 0 0% 98%;
-      --destructive: 0 62.8% 30.6%;
+      --background: 0 0% 100%;
+      --foreground: 240 10% 3.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 240 10% 3.9%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 240 10% 3.9%;
+      --primary: 240 5.9% 10%;
+      --primary-foreground: 0 0% 98%;
+      --secondary: 240 4.8% 95.9%;
+      --secondary-foreground: 240 5.9% 10%;
+      --muted: 240 4.8% 95.9%;
+      --muted-foreground: 240 3.8% 46.1%;
+      --accent: 240 4.8% 95.9%;
+      --accent-foreground: 240 5.9% 10%;
+      --destructive: 0 84.2% 60.2%;
       --destructive-foreground: 0 0% 98%;
-      --border: 240 3.7% 15.9%;
-      --input: 240 3.7% 15.9%;
-      --ring: 240 4.9% 83.9%;
+      --border: 240 5.9% 90%;
+      --input: 240 5.9% 90%;
+      --ring: 240 10% 3.9%;
       --radius: 0.5rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        /* User can override, but defaulting to light unless system preference is strong or manual toggle (which this page doesn't have yet) */
+        /* For now, let's stick to light default as requested */
+      }
     }
   </style>
   <script>
@@ -107,7 +114,7 @@
     <div class="bg-card px-6 py-12 shadow-sm border border-border sm:rounded-xl sm:px-10">
       
       <% if (error) { %>
-        <div class="bg-destructive/15 border border-destructive/20 text-red-400 px-4 py-3 rounded-md text-sm mb-6 flex items-start gap-2">
+        <div class="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded-md text-sm mb-6 flex items-start gap-2">
            <i class="ti ti-alert-circle text-lg shrink-0"></i>
            <span><%= error %></span>
         </div>
