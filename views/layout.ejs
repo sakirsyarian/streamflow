@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>
-    <%= title %> - StreamFlow
-  </title>
+  <title><%= title %> - StreamFlow</title>
   <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preload" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.30.0/tabler-icons.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.30.0/tabler-icons.min.css"></noscript>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -17,788 +14,446 @@
   <link rel="stylesheet" href="/css/styles.css">
   <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
   <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
+
+  <style>
+    :root {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 10% 3.9%;
+      --card-foreground: 0 0% 98%;
+      --popover: 240 10% 3.9%;
+      --popover-foreground: 0 0% 98%;
+      --primary: 0 0% 98%;
+      --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 3.7% 15.9%;
+      --input: 240 3.7% 15.9%;
+      --ring: 240 4.9% 83.9%;
+      --radius: 0.5rem;
+    }
+  </style>
+
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
-        fontFamily: {
-          'inter': ['Inter', 'sans-serif'],
-          'sans': ['Inter', 'system-ui', 'sans-serif']
+        container: {
+          center: true,
+          padding: "2rem",
+          screens: {
+            "2xl": "1400px",
+          },
         },
         extend: {
           colors: {
-            'primary': '#0055FF',
-            'secondary': '#0043CA',
-            'dark': {
-              '900': '#121212',
-              '800': '#252525',
-              '700': '#2D2D2D',
-              '600': '#3D3D3D',
-              '500': '#6E6E6E',
-              '400': '#8F8F8F',
-              '300': '#AFAFAF',
-              '200': '#CFCFCF',
-              '100': '#E5E5E5',
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(var(--primary))",
+              foreground: "hsl(var(--primary-foreground))",
             },
-            'gray': {
-              '900': '#121212',
-              '800': '#252525',
-              '700': '#2D2D2D',
-              '600': '#3D3D3D',
-              '500': '#6E6E6E',
-              '400': '#8F8F8F',
-              '300': '#AFAFAF',
-              '200': '#CFCFCF',
-              '100': '#E5E5E5',
-              '50': '#F5F5F5',
-            }
-          }
+            secondary: {
+              DEFAULT: "hsl(var(--secondary))",
+              foreground: "hsl(var(--secondary-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            popover: {
+              DEFAULT: "hsl(var(--popover))",
+              foreground: "hsl(var(--popover-foreground))",
+            },
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+          },
         }
       }
     }
   </script>
   <script src="/js/stream-modal.js" defer></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(function() {
-          document.querySelectorAll('.ti').forEach(function(icon) {
-            icon.classList.add('font-loaded');
-          });
-        });
-      } else {
-        setTimeout(function() {
-          document.querySelectorAll('.ti').forEach(function(icon) {
-            icon.classList.add('font-loaded');
-          });
-        }, 100);
-      }
-      
-      const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-          mutation.addedNodes.forEach(function(node) {
-            if (node.nodeType === 1) {
-              const icons = node.querySelectorAll ? node.querySelectorAll('.ti') : [];
-              icons.forEach(function(icon) {
-                if (document.fonts && document.fonts.check && document.fonts.check('1em tabler-icons')) {
-                  icon.classList.add('font-loaded');
-                } else {
-                  setTimeout(function() {
-                    icon.classList.add('font-loaded');
-                  }, 100);
-                }
-              });
-            }
-          });
-        });
-      });
-      
-      observer.observe(document.body, {
-         childList: true,
-         subtree: true
-       });
-     });
-
-     if ('serviceWorker' in navigator) {
-       window.addEventListener('load', function() {
-         navigator.serviceWorker.register('/sw.js')
-           .then(function(registration) {
-             console.log('Service Worker registered successfully:', registration.scope);
-           })
-           .catch(function(error) {
-             console.log('Service Worker registration failed:', error);
-           });
-       });
-     }
-   </script>
 </head>
-<body class="bg-dark-900 text-white font-inter">
-  <div
-    class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-dark-800 shadow-lg flex items-center justify-between px-4 z-30">
-    <div class="flex items-center">
-      <img src="/images/logo_mobile.svg" alt="StreamFlow Logo" class="h-8">
+<body class="bg-background text-foreground font-sans antialiased min-h-screen flex flex-col md:flex-row">
+
+  <!-- Mobile Header -->
+  <header class="md:hidden h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex items-center justify-between px-4">
+    <div class="flex items-center gap-2 font-bold text-lg">
+      <img src="/images/logo_mobile.svg" alt="Logo" class="h-6 w-auto">
+      <span>StreamFlow</span>
     </div>
-    <div class="flex items-center gap-1">
-      <a href="https://donate.youtube101.id/" target="_blank" 
-         class="p-2 text-gray-400 hover:text-white transition-colors">
-        <i class="ti ti-gift text-lg"></i>
+    <div class="flex items-center gap-2">
+      <button id="mobile-menu-btn" class="p-2 hover:bg-accent rounded-md">
+        <i class="ti ti-menu-2 text-xl"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Sidebar / Navigation -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-card border-r border-border transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out md:static md:block flex flex-col h-screen">
+    <div class="h-16 flex items-center px-6 border-b border-border">
+      <a href="/" class="flex items-center gap-2 font-bold text-xl">
+        <img src="/images/logo.svg" alt="Logo" class="h-8 w-8">
+        <span>StreamFlow</span>
       </a>
+    </div>
+
+    <div class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
+      <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors <%= active === 'dashboard' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' %>">
+        <i class="ti ti-broadcast text-lg"></i>
+        Streams
+      </a>
+      <a href="/gallery" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors <%= active === 'gallery' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' %>">
+        <i class="ti ti-video text-lg"></i>
+        Gallery
+      </a>
+      <a href="/playlist" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors <%= active === 'playlist' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' %>">
+        <i class="ti ti-playlist text-lg"></i>
+        Playlist
+      </a>
+      <a href="/history" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors <%= active === 'history' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' %>">
+        <i class="ti ti-history text-lg"></i>
+        History
+      </a>
+
+      <% if (req.session && req.session.user_role === 'admin') { %>
+        <div class="pt-4 pb-2">
+          <p class="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Admin</p>
+        </div>
+        <a href="/users" class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors <%= active === 'users' ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground' %>">
+          <i class="ti ti-users text-lg"></i>
+          Users
+        </a>
+      <% } %>
+    </div>
+
+    <div class="p-4 border-t border-border">
       <div class="relative">
-        <button id="mobile-notification-btn" class="p-2 text-gray-400 hover:text-white transition-colors relative">
-          <i class="ti ti-bell text-lg"></i>
-          <span class="hidden absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-      </div>
-    </div>
-  </div>
-  <div class="flex">
-    <div class="hidden lg:flex lg:fixed lg:flex-col w-20 h-screen pt-2 bg-dark-800 shadow-lg overflow-hidden">
-      <div class="flex items-center justify-center h-14 w-14 mx-auto mb-4">
-        <img src="/images/logo.svg" alt="StreamFlow Logo" class="w-9 h-9">
-      </div>
-      <div class="flex-1">
-        <a href="/dashboard" class="sidebar-icon group <%= active === 'dashboard' ? 'bg-primary' : '' %>">
-          <i class="ti ti-broadcast text-xl"></i>
-          <span class="text-xs mt-1">Streams</span>
-          <span class="sidebar-tooltip group-hover:scale-100">Stream Manager</span>
-        </a>
-        <a href="/gallery" class="sidebar-icon group <%= active === 'gallery' ? 'bg-primary' : '' %>">
-          <i class="ti ti-video text-xl"></i>
-          <span class="text-xs mt-1">Gallery</span>
-          <span class="sidebar-tooltip group-hover:scale-100">Video Gallery</span>
-        </a>
-        <a href="/playlist" class="sidebar-icon group <%= active === 'playlist' ? 'bg-primary' : '' %>">
-          <i class="ti ti-playlist text-xl"></i>
-          <span class="text-xs mt-1">Playlist</span>
-          <span class="sidebar-tooltip group-hover:scale-100">Playlist Manager</span>
-        </a>
-        <a href="/history" class="sidebar-icon group <%= active === 'history' ? 'bg-primary' : '' %>">
-          <i class="ti ti-history text-xl"></i>
-          <span class="text-xs mt-1">History</span>
-          <span class="sidebar-tooltip group-hover:scale-100">Stream History</span>
-        </a>
-        <% if (req.session && req.session.user_role === 'admin') { %>
-        <a href="/users" class="sidebar-icon group <%= active === 'users' ? 'bg-primary' : '' %>">
-          <i class="ti ti-users text-xl"></i>
-          <span class="text-xs mt-1">Users</span>
-          <span class="sidebar-tooltip group-hover:scale-100">User Management</span>
-        </a>
-        <% } %>
-      </div>
-      <div class="mt-auto">
-        <div class="h-px bg-gray-700 w-full"></div>
-        <div class="relative" id="profile-menu-container">
-          <div class="h-20 flex items-center justify-center px-3 py-4 hover:bg-dark-700/50 transition-colors">
-            <button id="profile-menu-button"
-              class="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-gray-700 hover:ring-primary transition-all">
-              <%- helpers.getAvatar(req) %>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="profile-dropdown" class="fixed bg-dark-800 shadow-xl border border-gray-700 hidden">
-      <div class="px-4 py-2 border-b border-gray-700">
-        <div class="font-medium">
-          <%= helpers.getUsername(req) %>
-        </div>
-      </div>
-      <a href="/settings"
-        class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-700 hover:text-white transition-colors">
-        <i class="ti ti-settings mr-3"></i>
-        <span>Settings</span>
-      </a>
-      <a href="https://github.com/bangtutorial/streamflow/issues"
-        class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-dark-700 hover:text-white transition-colors" target="_blank">
-        <i class="ti ti-help mr-3"></i>
-        <span>Help & Support</span>
-      </a>
-      <div class="h-px bg-gray-700 mx-4"></div>
-      <a href="/logout" class="flex items-center px-4 py-2.5 text-sm text-logout hover:bg-dark-700 transition-colors">
-        <i class="ti ti-logout mr-3"></i>
-        <span>Sign Out</span>
-      </a>
-    </div>
-    <div class="w-full lg:ml-20 flex flex-col min-h-screen">
-      <div
-        class="hidden lg:fixed lg:flex top-0 right-0 left-20 items-center justify-end h-14 px-6 bg-dark-800 shadow-md z-10">
-        <a href="https://github.com/bangtutorial/streamflow" target="_blank"
-          class="p-2 text-gray-400 hover:text-white transition-colors mr-2">
-          <i class="ti ti-brand-github text-lg"></i>
-        </a>
-        <div class="relative">
-          <button id="notification-btn" class="p-2 text-gray-400 hover:text-white transition-colors relative">
-            <i class="ti ti-bell text-lg"></i>
-            <span class="hidden absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          <div id="notification-dropdown"
-            class="hidden absolute right-0 mt-1 w-80 bg-dark-800 border border-gray-700 rounded-lg shadow-xl z-[60]">
-            <div class="p-3 border-b border-gray-700 flex items-center justify-between">
-              <h3 class="font-medium">Notifications</h3>
-            </div>
-            <div class="max-h-80 overflow-y-auto" id="notification-list">
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="p-6 pt-20 lg:pt-22 flex-1">
-        <%- body %>
-      </div>
-      <div class="hidden lg:flex justify-end pr-6 py-4">
-        <div class="flex items-center gap-2">
-          <div class="text-xs text-gray-500">
-            StreamFlow <span class="text-xs font-medium bg-gray-700 px-1 rounded">v2.1</span>
-          </div>
-          <div class="h-3 w-px bg-gray-700"></div>
-          <a href="https://youtube.com/@bangtutorial" target="_blank" class="text-xs text-gray-500 hover:underline">by
-            Bang Tutorial</a>
-          <a href="https://donate.youtube101.id/" target="_blank" class="kirim-tip-button relative ml-1">
-            <span class="relative z-10 flex items-center gap-1 text-white font-medium px-1.5 py-0.5 text-xs">
-              <i class="ti ti-heart text-white"></i>
-              <span>Donate</span>
-            </span>
-            <div
-              class="kirim-tip-tooltip px-3 py-2 bg-white text-gray-800 text-xs rounded-lg shadow-lg whitespace-nowrap">
-              Terima kasih sudah bantu support 🙏
-              <div class="tooltip-arrow"></div>
-            </div>
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-gray-700 shadow-lg z-30">
-    <nav class="flex justify-around items-center h-16">
-      <a href="/dashboard" class="bottom-nav-item <%= active === 'dashboard' ? 'bottom-nav-active' : '' %>">
-        <i class="ti ti-broadcast"></i>
-        <span>Streams</span>
-      </a>
-      <a href="/gallery" class="bottom-nav-item <%= active === 'gallery' ? 'bottom-nav-active' : '' %>">
-        <i class="ti ti-video"></i>
-        <span>Gallery</span>
-      </a>
-      <a href="/playlist" class="bottom-nav-item <%= active === 'playlist' ? 'bottom-nav-active' : '' %>">
-        <i class="ti ti-playlist"></i>
-        <span>Playlist</span>
-      </a>
-      <a href="/history" class="bottom-nav-item <%= active === 'history' ? 'bottom-nav-active' : '' %>">
-        <i class="ti ti-history"></i>
-        <span>History</span>
-      </a>
-      <button id="mobile-profile-btn" class="bottom-nav-item">
-        <div class="relative">
-          <div class="w-6 h-6 rounded-full overflow-hidden mx-auto">
+        <button id="user-menu-btn" class="w-full flex items-center gap-3 p-2 rounded-md hover:bg-accent transition-colors text-left">
+          <div class="h-8 w-8 rounded-full overflow-hidden bg-secondary">
             <%- helpers.getAvatar(req) %>
           </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate"><%= helpers.getUsername(req) %></p>
+            <p class="text-xs text-muted-foreground truncate"><%= req.session.email || 'User' %></p>
+          </div>
+          <i class="ti ti-chevron-up text-muted-foreground"></i>
+        </button>
+
+        <!-- User Dropdown -->
+        <div id="user-dropdown" class="absolute bottom-full left-0 w-full mb-2 bg-popover border border-border rounded-md shadow-lg hidden">
+          <div class="p-1">
+            <a href="/settings" class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground">
+              <i class="ti ti-settings text-muted-foreground"></i>
+              Settings
+            </a>
+            <a href="https://github.com/bangtutorial/streamflow/issues" target="_blank" class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground">
+              <i class="ti ti-help text-muted-foreground"></i>
+              Help & Support
+            </a>
+            <div class="h-px bg-border my-1"></div>
+            <a href="/logout" class="flex items-center gap-2 px-3 py-2 text-sm rounded-sm text-destructive hover:bg-destructive/10">
+              <i class="ti ti-logout"></i>
+              Log out
+            </a>
+          </div>
         </div>
-        <span>Profile</span>
-      </button>
-    </nav>
-    <div id="mobile-profile-popup"
-      class="fixed bottom-16 right-2 bg-dark-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden hidden transform transition-all duration-200 ease-out opacity-0 translate-y-4 w-40">
-      <div class="py-2 px-3">
-        <div class="text-sm font-medium mb-1">
-          <%= helpers.getUsername(req) %>
-        </div>
-        <div class="text-xs text-gray-400 mb-2">
-          <%= req.session.email || '' %>
-        </div>
-        <div class="h-px bg-gray-700 my-2"></div>
-        <% if (req.session && req.session.user_role === 'admin') { %>
-        <a href="/users" class="flex items-center py-2 text-gray-300 hover:text-white text-sm">
-          <i class="ti ti-users mr-2"></i>
-          <span>Users</span>
-        </a>
-        <% } %>
-        <a href="/settings" class="flex items-center py-2 text-gray-300 hover:text-white text-sm">
-          <i class="ti ti-settings mr-2"></i>
-          <span>Settings</span>
-        </a>
-        <div class="h-px bg-gray-700 my-2"></div>
-        <a href="/logout" class="flex items-center py-2 text-red-400 hover:text-red-300 text-sm">
-          <i class="ti ti-logout mr-2"></i>
-          <span>Sign Out</span>
-        </a>
       </div>
     </div>
-  </div>
-  <div id="mobile-notification-popup"
-    class="fixed bottom-16 right-2 bg-dark-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden hidden transform transition-all duration-200 ease-out opacity-0 translate-y-4 w-72 z-[60]">
-    <div class="p-3 border-b border-gray-700 flex items-center justify-between">
-      <h3 class="font-medium">Notifications</h3>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 flex flex-col min-h-screen overflow-hidden bg-background">
+    <!-- Top Bar (Desktop) -->
+    <header class="hidden md:flex h-16 items-center justify-between border-b border-border px-6">
+      <div class="flex items-center gap-4">
+        <!-- Breadcrumb or Page Title can go here -->
+        <h1 class="text-lg font-semibold"><%= title %></h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/bangtutorial/streamflow" target="_blank" class="text-muted-foreground hover:text-foreground transition-colors">
+          <i class="ti ti-brand-github text-xl"></i>
+        </a>
+        <div class="relative">
+          <button id="notification-btn" class="text-muted-foreground hover:text-foreground transition-colors relative">
+            <i class="ti ti-bell text-xl"></i>
+            <span class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background"></span>
+          </button>
+
+          <!-- Notification Dropdown -->
+          <div id="notification-dropdown" class="absolute right-0 mt-2 w-80 bg-popover border border-border rounded-md shadow-lg z-50 hidden">
+            <div class="p-4 border-b border-border">
+              <h3 class="font-medium text-sm">Notifications</h3>
+            </div>
+            <div class="max-h-80 overflow-y-auto" id="notification-list">
+              <!-- Notifications will be injected here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+      <%- body %>
+
+      <!-- Footer -->
+      <footer class="mt-8 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+        <div class="flex items-center gap-2">
+          <span>StreamFlow</span>
+          <span class="bg-secondary px-1.5 py-0.5 rounded text-xs font-medium">v2.1</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <a href="https://youtube.com/@bangtutorial" target="_blank" class="hover:text-foreground">by Bang Tutorial</a>
+          <div class="h-3 w-px bg-border"></div>
+          <a href="https://donate.youtube101.id/" target="_blank" class="flex items-center gap-1 hover:text-foreground">
+            <i class="ti ti-heart"></i>
+            Donate
+          </a>
+        </div>
+      </footer>
     </div>
-    <div class="max-h-80 overflow-y-auto" id="mobile-notification-list">
-    </div>
-  </div>
-  <div id="streamflowUpdateModal" class="fixed inset-0 bg-black/60 z-[60] hidden items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-dark-800 rounded-xl shadow-xl w-full max-w-2xl m-auto flex flex-col max-h-[90vh] border border-gray-700/50">
-      <div class="flex-shrink-0 flex items-center justify-between px-5 py-2 border-b border-gray-700/50">
-        <h3 class="text-lg font-medium text-white flex items-center gap-2">
-          <span class="text-base">🎉 Update StreamFlow v2</span>
-        </h3>
-        <button onclick="closeStreamflowUpdateModal()" class="text-gray-400 hover:text-white hover:bg-gray-700/50 px-2 py-1 rounded-lg transition-colors">
+  </main>
+
+  <!-- Mobile Overlay -->
+  <div id="mobile-overlay" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+  <!-- Update Modal -->
+  <div id="streamflowUpdateModal" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] hidden items-center justify-center p-4">
+    <div class="bg-card border border-border rounded-lg shadow-lg w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between p-6 border-b border-border">
+        <h3 class="text-lg font-semibold">Update StreamFlow v2</h3>
+        <button onclick="closeStreamflowUpdateModal()" class="text-muted-foreground hover:text-foreground">
           <i class="ti ti-x text-lg"></i>
         </button>
       </div>
-      <div class="p-5 overflow-y-auto text-gray-300 space-y-4">
-        <p class="text-sm">Terima kasih buat teman-teman yang sudah menunggu. Berikut adalah update terbaru yang ada di StreamFlow v2:</p>
+      <div class="p-6 overflow-y-auto space-y-4">
+        <p class="text-muted-foreground">Terima kasih buat teman-teman yang sudah menunggu. Berikut adalah update terbaru yang ada di StreamFlow v2:</p>
         
         <div class="space-y-4">
-          <div class="flex items-start gap-3">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-blue-500/20 rounded-full flex items-center justify-center">
-                <i class="ti ti-layout-dashboard text-blue-400"></i>
-              </div>
+          <div class="flex gap-3">
+            <div class="mt-0.5 w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+              <i class="ti ti-layout-dashboard text-blue-500"></i>
             </div>
             <div>
-              <h4 class="font-medium text-white text-sm">UI Baru yang Lebih Fresh</h4>
-              <p class="text-gray-300 mt-1 text-sm">Tampilan baru yang lebih fresh dan user freindly. Sudah dibikin senyaman mungkin untuk kebutuhan live streaming.</p>
+              <h4 class="font-medium text-sm">UI Baru yang Lebih Fresh</h4>
+              <p class="text-sm text-muted-foreground">Tampilan baru yang lebih fresh dan user freindly.</p>
             </div>
           </div>
           
-          <div class="flex items-start gap-3">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                <i class="ti ti-rocket text-green-400"></i>
-              </div>
+           <div class="flex gap-3">
+            <div class="mt-0.5 w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+              <i class="ti ti-rocket text-green-500"></i>
             </div>
             <div>
-              <h4 class="font-medium text-white text-sm">Live Streaming Lebih Ringan</h4>
-              <p class="text-gray-300 mt-1 text-sm">Di StreamFlow v2, proses streaming sudah dioptimalkan, sehingga jauh lebih ringan dibandingkan StreamFlow v1 sebelumnya.</p>
+              <h4 class="font-medium text-sm">Live Streaming Lebih Ringan</h4>
+              <p class="text-sm text-muted-foreground">Optimasi proses streaming untuk performa yang lebih baik.</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            <div class="mt-0.5 w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+              <i class="ti ti-calendar text-purple-500"></i>
+            </div>
+            <div>
+              <h4 class="font-medium text-sm">Penjadwalan Live Streaming</h4>
+              <p class="text-sm text-muted-foreground">Fitur penjadwalan dan auto stop yang diperbaiki.</p>
             </div>
           </div>
           
-          <div class="flex items-start gap-3">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
-                <i class="ti ti-calendar text-purple-400"></i>
-              </div>
+           <div class="flex gap-3">
+            <div class="mt-0.5 w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+              <i class="ti ti-bug text-amber-500"></i>
             </div>
             <div>
-              <h4 class="font-medium text-white text-sm">Penjadwalan Live Streaming</h4>
-              <p class="text-gray-300 mt-1 text-sm">Di versi baru ini, fitur penjadwalan streaming ataupun auto stop sudah ditambahkan dan diperbaiki dibanding versi sebelumnya.</p>
-            </div>
-          </div>
-          
-          <div class="flex items-start gap-3">
-            <div class="shrink-0">
-              <div class="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
-                <i class="ti ti-bug text-amber-400"></i>
-              </div>
-            </div>
-            <div>
-              <h4 class="font-medium text-white text-sm">Fix Bug</h4>
-              <p class="text-gray-300 mt-1 text-sm">Beberapa bug yang sering ditemui di versi sebelumnya sudah di fix pada StreamFlow v2 ini, salah satunya bug streaming tiba-tiba terhenti.</p>
+              <h4 class="font-medium text-sm">Fix Bug</h4>
+              <p class="text-sm text-muted-foreground">Perbaikan bug streaming terhenti dan stabilitas lainnya.</p>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</body>
-</html>
-<style>
-  #profile-dropdown {
-    position: fixed;
-    z-index: 100;
-    min-width: 220px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-    width: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    bottom: 80px;
-    left: 15px;
-  }
-  #profile-dropdown.hidden {
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    display: block !important;
-    visibility: hidden;
-  }
-  @media (max-width: 768px) {
-    #profile-dropdown {
-      min-width: 200px;
-      right: 20px;
-      left: auto;
-      bottom: auto;
-      top: 100px;
-    }
-  }
-  .text-logout {
-    color: #FF5555;
-  }
-  .text-logout:hover {
-    color: #FF7777;
-  }
-  .kirim-tip-button {
-    position: relative;
-    border-radius: 5px;
-    background: linear-gradient(45deg, #01935d, #01e304);
-    transition: all 0.3s ease;
-  }
-  .kirim-tip-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 168, 107, 0.3);
-  }
-  .kirim-tip-tooltip {
-    position: absolute;
-    bottom: 100%;
-    right: 0;
-    margin-bottom: 10px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
-    transform: translateY(5px);
-    z-index: 50;
-    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.2));
-  }
-  .kirim-tip-button:hover .kirim-tip-tooltip {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
-  }
-  .tooltip-arrow {
-    position: absolute;
-    bottom: -6px;
-    right: 10px;
-    width: 12px;
-    height: 12px;
-    background-color: white;
-    transform: rotate(45deg);
-  }
-  @media (max-width: 1023px) {
-    body {
-      padding-top: 16px;
-    }
-  }
-  .bottom-nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex: 1;
-    text-align: center;
-    padding: 8px 0;
-    color: #8F8F8F;
-    position: relative;
-    transition: color 0.2s ease;
-  }
-  .bottom-nav-item i {
-    font-size: 22px;
-    margin-bottom: 4px;
-  }
-  .bottom-nav-item span {
-    font-size: 11px;
-  }
-  .bottom-nav-item:hover {
-    color: #E5E5E5;
-  }
-  .bottom-nav-active {
-    color: #0055FF;
-  }
-  .bottom-nav-active::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 3px;
-    background-color: #0055FF;
-    border-radius: 0 0 4px 4px;
-  }
-  @media (max-width: 1023px) {
-    .min-h-screen {
-      padding-bottom: 80px !important;
-    }
-    #mobile-profile-popup.show {
-      opacity: 1;
-      transform: translateY(0);
-      visibility: visible;
-    }
-  }
-  #mobile-notification-popup.show {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    visibility: visible !important;
-  }
-  #mobile-notification-popup {
-    z-index: 100;
-    transition: opacity 0.3s, transform 0.3s, visibility 0.3s;
-    display: block !important;
-    visibility: hidden;
-  }
-  #mobile-notification-popup.hidden {
-    display: none !important;
-  }
-</style>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const profileButton = document.getElementById('profile-menu-button');
-    const profileDropdown = document.getElementById('profile-dropdown');
-    if (!profileButton || !profileDropdown) return;
-    profileButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      const isHidden = profileDropdown.classList.contains('hidden');
-      profileDropdown.classList.toggle('hidden');
-    });
-    document.addEventListener('click', (e) => {
-      const isClickInsideDropdown = profileDropdown.contains(e.target);
-      const isClickOnButton = profileButton.contains(e.target);
-      if (!isClickInsideDropdown && !isClickOnButton && !profileDropdown.classList.contains('hidden')) {
-        profileDropdown.classList.add('hidden');
+
+  <script>
+    // Sidebar Toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sidebar');
+    const mobileOverlay = document.getElementById('mobile-overlay');
+
+    function toggleSidebar() {
+      const isClosed = sidebar.classList.contains('-translate-x-full');
+      if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        mobileOverlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        mobileOverlay.classList.add('hidden');
+        document.body.style.overflow = '';
       }
-    });
-    profileDropdown.addEventListener('click', (e) => {
-      e.stopPropagation();
-    });
-    const profileBtn = document.getElementById('mobile-profile-btn');
-    const profilePopup = document.getElementById('mobile-profile-popup');
-    if (profileBtn && profilePopup) {
-      profileBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        if (profilePopup.classList.contains('hidden')) {
-          profilePopup.classList.remove('hidden');
-          setTimeout(() => {
-            profilePopup.classList.add('show');
-          }, 10);
-        } else {
-          profilePopup.classList.remove('show');
-          setTimeout(() => {
-            profilePopup.classList.add('hidden');
-          }, 200);
-        }
-      });
-      document.addEventListener('click', function (e) {
-        if (!profilePopup.classList.contains('hidden') &&
-          !profileBtn.contains(e.target) &&
-          !profilePopup.contains(e.target)) {
-          profilePopup.classList.remove('show');
-          setTimeout(() => {
-            profilePopup.classList.add('hidden');
-          }, 200);
-        }
-      });
     }
-    const mobileNotificationBtn = document.getElementById('mobile-notification-btn');
-    const mobileNotificationPopup = document.getElementById('mobile-notification-popup');
-    if (mobileNotificationBtn && mobileNotificationPopup) {
-      mobileNotificationBtn.addEventListener('click', function (e) {
-        e.preventDefault();
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener('click', toggleSidebar);
+    }
+
+    if (mobileOverlay) {
+      mobileOverlay.addEventListener('click', toggleSidebar);
+    }
+
+    // User Dropdown
+    const userMenuBtn = document.getElementById('user-menu-btn');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    if (userMenuBtn && userDropdown) {
+      userMenuBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        
-        hideNotificationBadge();
-        
-        const btnRect = mobileNotificationBtn.getBoundingClientRect();
-        mobileNotificationPopup.style.top = '64px';
-        mobileNotificationPopup.style.right = '10px';
-        mobileNotificationPopup.style.left = 'auto';
-        mobileNotificationPopup.style.bottom = 'auto';
-        if (mobileNotificationPopup.classList.contains('hidden')) {
-          mobileNotificationPopup.classList.remove('hidden');
-          setTimeout(() => {
-            mobileNotificationPopup.classList.add('show');
-          }, 10);
-        } else {
-          mobileNotificationPopup.classList.remove('show');
-          setTimeout(() => {
-            mobileNotificationPopup.classList.add('hidden');
-          }, 200);
-        }
+        userDropdown.classList.toggle('hidden');
       });
-      document.addEventListener('click', function (e) {
-        if (!mobileNotificationPopup.classList.contains('hidden') &&
-          !mobileNotificationBtn.contains(e.target) &&
-          !mobileNotificationPopup.contains(e.target)) {
-          mobileNotificationPopup.classList.remove('show');
-          setTimeout(() => {
-            mobileNotificationPopup.classList.add('hidden');
-          }, 200);
+
+      document.addEventListener('click', (e) => {
+        if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+          userDropdown.classList.add('hidden');
         }
       });
     }
 
+    // Notification Dropdown
     const notificationBtn = document.getElementById('notification-btn');
     const notificationDropdown = document.getElementById('notification-dropdown');
+
     if (notificationBtn && notificationDropdown) {
-      notificationBtn.addEventListener('click', function (e) {
-        e.preventDefault();
+      notificationBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        
+        notificationDropdown.classList.toggle('hidden');
         hideNotificationBadge();
-        
-        if (notificationDropdown.classList.contains('hidden')) {
-          notificationDropdown.classList.remove('hidden');
-        } else {
-          notificationDropdown.classList.add('hidden');
-        }
       });
-      
-      document.addEventListener('click', function (e) {
-        if (!notificationDropdown.classList.contains('hidden') &&
-          !notificationBtn.contains(e.target) &&
-          !notificationDropdown.contains(e.target)) {
+
+      document.addEventListener('click', (e) => {
+        if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
           notificationDropdown.classList.add('hidden');
         }
       });
     }
-  });
 
-  function loadNotifications() {
-    checkGitHubUpdates();
-  }
-
-  function hideNotificationBadge() {
-    const badge = document.querySelector('#notification-btn .bg-red-500');
-    const mobileBadge = document.querySelector('#mobile-notification-btn .bg-red-500');
-    
-    if (badge) badge.classList.add('hidden');
-    if (mobileBadge) mobileBadge.classList.add('hidden');
-    
-    const latestCommitSha = localStorage.getItem('latestCommitSha');
-    if (latestCommitSha) {
-      localStorage.setItem('savedCommitSha', latestCommitSha);
-    }
-  }
-
-  async function checkGitHubUpdates() {
-    try {
-      const response = await fetch('https://api.github.com/repos/bangtutorial/streamflow/commits?per_page=3');
-      if (!response.ok) {
-        return;
-      }
-      
-      const commits = await response.json();
-      
-      if (commits && commits.length > 0) {
-        const latestCommitSha = commits[0].sha;
-        const savedCommitSha = localStorage.getItem('savedCommitSha');
-        
-        localStorage.setItem('latestCommitSha', latestCommitSha);
-        
-        showGitHubUpdateNotifications(commits);
-        
-        if (!savedCommitSha) {
-          localStorage.setItem('savedCommitSha', latestCommitSha);
-        } else if (savedCommitSha !== latestCommitSha) {
-          showNotificationBadge();
-        } else {
-          const badge = document.querySelector('#notification-btn .bg-red-500');
-          const mobileBadge = document.querySelector('#mobile-notification-btn .bg-red-500');
-          if (badge) badge.classList.add('hidden');
-          if (mobileBadge) mobileBadge.classList.add('hidden');
-        }
-      }
-    } catch (error) {
-    }
-  }
-
-  function showNotificationBadge() {
-    const badge = document.querySelector('#notification-btn .bg-red-500');
-    const mobileBadge = document.querySelector('#mobile-notification-btn .bg-red-500');
-    
-    if (badge) badge.classList.remove('hidden');
-    if (mobileBadge) mobileBadge.classList.remove('hidden');
-  }
-
-  function showGitHubUpdateNotifications(commits) {
-    const notificationList = document.getElementById('notification-list');
-    const mobileNotificationList = document.getElementById('mobile-notification-list');
-    
-    if (notificationList) {
-      const existingNotifications = notificationList.querySelectorAll('[data-github-notification]');
-      existingNotifications.forEach(notification => notification.remove());
-    }
-    if (mobileNotificationList) {
-      const existingNotifications = mobileNotificationList.querySelectorAll('[data-github-notification]');
-      existingNotifications.forEach(notification => notification.remove());
-    }
-    
-    commits.forEach(commit => {
-      const timeAgo = getTimeAgo(commit.commit.author.date);
-      const commitMessage = commit.commit.message.split('\n')[0];
-      const shortSha = commit.sha.substring(0, 7);
-      const authorName = commit.commit.author.name;
-      
-      const notificationHTML = `
-        <div class="p-3 hover:bg-gray-700/50 transition-colors cursor-pointer" data-github-notification onclick="window.open('${commit.html_url}', '_blank')">
-          <div class="flex items-start gap-3">
-            <div class="w-8 h-8 flex-shrink-0">
-              <img src="${commit.author.avatar_url}" alt="${authorName}" class="w-8 h-8 rounded-full object-cover">
-            </div>
-            <div class="flex-1 min-w-0">
-              <h4 class="text-sm font-medium text-white mb-1">New GitHub Commit</h4>
-              <p class="text-xs text-gray-300 mb-1">${commitMessage}</p>
-              <p class="text-xs text-gray-400">by ${authorName} • ${timeAgo}</p>
-            </div>
-          </div>
-        </div>
-      `;
-      
-      if (notificationList) {
-        notificationList.insertAdjacentHTML('beforeend', notificationHTML);
-      }
-      if (mobileNotificationList) {
-        mobileNotificationList.insertAdjacentHTML('beforeend', notificationHTML);
-      }
-    });
-    
-    updateNotificationBadge();
-  }
-
-  function getTimeAgo(dateString) {
-    const now = new Date();
-    const date = new Date(dateString);
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) {
-      return 'Just now';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} minutes ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} hours ago`;
-    } else {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} days ago`;
-    }
-  }
-
-  function updateNotificationBadge() {
-    const badge = document.querySelector('#notification-btn .bg-red-500');
-    const mobileBadge = document.querySelector('#mobile-notification-btn .bg-red-500');
-    const latestCommitSha = localStorage.getItem('latestCommitSha');
-    const savedCommitSha = localStorage.getItem('savedCommitSha');
-
-    if (savedCommitSha && latestCommitSha && savedCommitSha !== latestCommitSha) {
-      if (badge) badge.classList.remove('hidden');
-      if (mobileBadge) mobileBadge.classList.remove('hidden');
-    } else {
+    // Notification Logic (re-using existing logic logic but adapted)
+    function hideNotificationBadge() {
+      const badge = document.querySelector('#notification-btn span');
       if (badge) badge.classList.add('hidden');
-      if (mobileBadge) mobileBadge.classList.add('hidden');
+      
+      const latestCommitSha = localStorage.getItem('latestCommitSha');
+      if (latestCommitSha) {
+        localStorage.setItem('savedCommitSha', latestCommitSha);
+      }
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    loadNotifications();
-  });
+    async function checkGitHubUpdates() {
+      try {
+        const response = await fetch('https://api.github.com/repos/bangtutorial/streamflow/commits?per_page=3');
+        if (!response.ok) return;
+        
+        const commits = await response.json();
+        if (commits && commits.length > 0) {
+          const latestCommitSha = commits[0].sha;
+          const savedCommitSha = localStorage.getItem('savedCommitSha');
 
-  function openStreamflowUpdateModal() {
-    const modal = document.getElementById('streamflowUpdateModal');
-    if (modal) {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      document.body.style.overflow = 'hidden';
+          localStorage.setItem('latestCommitSha', latestCommitSha);
+          renderNotifications(commits);
+
+          if (!savedCommitSha || savedCommitSha !== latestCommitSha) {
+            const badge = document.querySelector('#notification-btn span');
+            if (badge) badge.classList.remove('hidden');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch updates', error);
+      }
     }
-  }
 
-  function closeStreamflowUpdateModal() {
-    const modal = document.getElementById('streamflowUpdateModal');
-    if (modal) {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.style.overflow = 'auto';
+    function renderNotifications(commits) {
+      const list = document.getElementById('notification-list');
+      if (!list) return;
+      list.innerHTML = '';
+      
+      commits.forEach(commit => {
+         const timeAgo = getTimeAgo(commit.commit.author.date);
+         const item = document.createElement('div');
+         item.className = 'p-3 hover:bg-accent cursor-pointer border-b border-border last:border-0';
+         item.onclick = () => window.open(commit.html_url, '_blank');
+         item.innerHTML = `
+            <div class="flex items-start gap-3">
+              <img src="${commit.author ? commit.author.avatar_url : 'https://github.com/github.png'}" class="w-8 h-8 rounded-full">
+              <div>
+                <p class="text-sm font-medium leading-none mb-1">Update Available</p>
+                <p class="text-xs text-muted-foreground line-clamp-2">${commit.commit.message}</p>
+                <p class="text-[10px] text-muted-foreground mt-1">${timeAgo}</p>
+              </div>
+            </div>
+         `;
+         list.appendChild(item);
+      });
     }
-  }
 
-  document.addEventListener('keydown', (e) => {
-    const updateModal = document.getElementById('streamflowUpdateModal');
-    if (e.key === 'Escape' && updateModal && !updateModal.classList.contains('hidden')) {
-      closeStreamflowUpdateModal();
+    function getTimeAgo(dateString) {
+      const now = new Date();
+      const date = new Date(dateString);
+      const diff = Math.floor((now - date) / 1000);
+      if (diff < 60) return 'Just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      return Math.floor(diff / 86400) + 'd ago';
     }
-  });
 
-  document.addEventListener('click', (e) => {
-    const updateModal = document.getElementById('streamflowUpdateModal');
-    if (updateModal && e.target === updateModal) { 
-      closeStreamflowUpdateModal();
+    document.addEventListener('DOMContentLoaded', checkGitHubUpdates);
+
+    // Modal helpers
+    function openStreamflowUpdateModal() {
+      const modal = document.getElementById('streamflowUpdateModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      }
     }
-  });
-</script>
+
+    function closeStreamflowUpdateModal() {
+      const modal = document.getElementById('streamflowUpdateModal');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+    }
+
+    window.closeStreamflowUpdateModal = closeStreamflowUpdateModal;
+  </script>
+</body>
+</html>

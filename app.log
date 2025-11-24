@@ -1,0 +1,13 @@
+
+> streamflow@2.1.0 start
+> node app.js
+
+Logger initialized. Output will be written to console and logs/app.log
+Using bundled FFmpeg at: /app/node_modules/@ffmpeg-installer/linux-x64/ffmpeg
+StreamFlow running at:
+  http://192.168.0.2:7575
+[Cleanup] No orphaned temp files found
+Stream scheduler initialized
+[StreamingService] Syncing stream statuses...
+[StreamingService] Stream status sync completed. Active streams: 0
+[Cleanup] Periodic cleanup scheduled (every 1 hour)

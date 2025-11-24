@@ -1,113 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - StreamFlow Lite</title>
+  <title>Login - StreamFlow</title>
   <link rel="icon" href="/images/logo_mobile.svg" type="image/svg+xml">
-  <link rel="preload" href="/images/logo_mobile.svg" as="image" type="image/svg+xml">
-  <link rel="alternate icon" href="/images/favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.30.0/tabler-icons.min.css">
   <link rel="stylesheet" href="/css/styles.css">
+
+  <style>
+    :root {
+      --background: 240 10% 3.9%;
+      --foreground: 0 0% 98%;
+      --card: 240 10% 3.9%;
+      --card-foreground: 0 0% 98%;
+      --popover: 240 10% 3.9%;
+      --popover-foreground: 0 0% 98%;
+      --primary: 0 0% 98%;
+      --primary-foreground: 240 5.9% 10%;
+      --secondary: 240 3.7% 15.9%;
+      --secondary-foreground: 0 0% 98%;
+      --muted: 240 3.7% 15.9%;
+      --muted-foreground: 240 5% 64.9%;
+      --accent: 240 3.7% 15.9%;
+      --accent-foreground: 0 0% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 240 3.7% 15.9%;
+      --input: 240 3.7% 15.9%;
+      --ring: 240 4.9% 83.9%;
+      --radius: 0.5rem;
+    }
+  </style>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
-        fontFamily: {
-          'inter': ['Inter', 'sans-serif'],
-          'sans': ['Inter', 'system-ui', 'sans-serif']
+        container: {
+          center: true,
+          padding: "2rem",
+          screens: {
+            "2xl": "1400px",
+          },
         },
         extend: {
           colors: {
-            'primary': '#0055FF',
-            'secondary': '#0043CA',
-            'dark': {
-              '900': '#121212',
-              '800': '#252525',
-              '700': '#2D2D2D',
-              '600': '#3D3D3D',
-              '500': '#6E6E6E',
-              '400': '#8F8F8F',
-              '100': '#E5E5E5',
-            }
-          }
+            border: "hsl(var(--border))",
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            background: "hsl(var(--background))",
+            foreground: "hsl(var(--foreground))",
+            primary: {
+              DEFAULT: "hsl(var(--primary))",
+              foreground: "hsl(var(--primary-foreground))",
+            },
+            secondary: {
+              DEFAULT: "hsl(var(--secondary))",
+              foreground: "hsl(var(--secondary-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            popover: {
+              DEFAULT: "hsl(var(--popover))",
+              foreground: "hsl(var(--popover-foreground))",
+            },
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+          },
         }
       }
     }
   </script>
 </head>
-<body class="bg-dark-900 text-white font-inter">
-  <div class="min-h-screen flex items-center justify-center px-6">
-    <div class="w-full max-w-md bg-dark-800 rounded-xl shadow-xl p-8">
-      
-      <div class="flex justify-center mb-8">
-        <img src="/images/logo_mobile.svg" alt="StreamFlow Logo" class="h-10">
-      </div>
+<body class="bg-background text-foreground font-sans antialiased flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
+
+  <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <img class="mx-auto h-10 w-auto" src="/images/logo.svg" alt="StreamFlow">
+    <h2 class="mt-6 text-center text-2xl font-bold leading-9 tracking-tight">Sign in to your account</h2>
+  </div>
+
+  <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[400px]">
+    <div class="bg-card px-6 py-12 shadow-sm border border-border sm:rounded-xl sm:px-10">
       
       <% if (error) { %>
-        <div id="error-message" class="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-6">
-          <div class="flex items-center">
-            <i class="ti ti-alert-circle mr-2"></i>
-            <span>
-              <%= error %>
-            </span>
-          </div>
-          <% if (error.includes('Too many login attempts')) { %>
-            <% } %>
+        <div class="bg-destructive/15 border border-destructive/20 text-red-400 px-4 py-3 rounded-md text-sm mb-6 flex items-start gap-2">
+           <i class="ti ti-alert-circle text-lg shrink-0"></i>
+           <span><%= error %></span>
         </div>
-        <% } %>
-          
-          <form action="/login" method="post" class="space-y-5">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <div>
-              <label for="username" class="text-sm font-medium block mb-2">Username</label>
-              <div class="relative">
-                <input type="text" id="username" name="username"
-                  class="w-full pl-10 pr-4 py-2.5 bg-dark-700 border border-gray-600 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Enter your username" required>
-                <i class="ti ti-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-              </div>
-            </div>
-            <div class="pb-3">
-              <label for="password" class="text-sm font-medium block mb-2">Password</label>
-              <div class="relative">
-                <input type="password" id="password" name="password"
-                  class="w-full pl-10 pr-12 py-2.5 bg-dark-700 border border-gray-600 rounded-lg focus:border-primary focus:ring-1 focus:ring-primary"
-                  placeholder="Enter your password" required>
-                <i class="ti ti-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                <button type="button" onclick="togglePasswordVisibility()"
-                  class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400 hover:text-white transition-colors">
-                  <i class="ti ti-eye text-base" id="passwordToggle"></i>
-                </button>
-              </div>
-            </div>
-            
-            <button type="submit"
-              class="w-full bg-primary hover:bg-blue-600 text-white py-2.5 rounded-lg font-medium transition-colors">
-              Log In
-            </button>
-          </form>
+      <% } %>
 
-          <div class="text-center mt-6">
-            <p class="text-gray-400 text-sm">
-              Don't have an account? 
-              <a href="/signup" class="text-primary hover:text-blue-400 transition-colors">Sign up</a>
-            </p>
+      <form class="space-y-6" action="/login" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div>
+          <label for="username" class="block text-sm font-medium leading-6">Username</label>
+          <div class="mt-2">
+            <input id="username" name="username" type="text" required class="block w-full rounded-md border-0 bg-background py-1.5 text-foreground shadow-sm ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6 pl-3">
           </div>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium leading-6">Password</label>
+          <div class="mt-2 relative">
+            <input id="password" name="password" type="password" required class="block w-full rounded-md border-0 bg-background py-1.5 text-foreground shadow-sm ring-1 ring-inset ring-input placeholder:text-muted-foreground focus:ring-2 focus:ring-inset focus:ring-ring sm:text-sm sm:leading-6 pl-3 pr-10">
+            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground">
+               <i class="ti ti-eye" id="passwordToggle"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <button type="submit" class="flex w-full justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-semibold leading-6 text-primary-foreground shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors">Sign in</button>
+        </div>
+      </form>
+
+      <p class="mt-10 text-center text-sm text-muted-foreground">
+        Not a member?
+        <a href="/signup" class="font-semibold leading-6 text-primary hover:text-primary/80 hover:underline">Sign up now</a>
+      </p>
     </div>
   </div>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const icons = document.querySelectorAll('.ti');
-      icons.forEach(icon => {
-        icon.classList.add('font-loaded');
-      });
-    });
 
+  <script>
     function togglePasswordVisibility() {
       const password = document.getElementById('password');
       const passwordToggle = document.getElementById('passwordToggle');
