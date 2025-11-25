@@ -16,18 +16,17 @@
 .ti {
   font-family: 'tabler-icons', sans-serif;
   font-display: swap;
+  visibility: visible;
 }
 
 .ti:before {
   font-display: swap;
 }
 
-.ti {
-  visibility: hidden;
-}
-
-.ti.font-loaded {
-  visibility: visible;
+/* Ensure sidebar icons are visible in both light and dark mode */
+aside a .ti,
+aside button .ti {
+  color: inherit;
 }
 
 /* Custom Scrollbar for Webkit (Chrome, Safari) */
