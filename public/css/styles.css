@@ -92,3 +92,32 @@ input::placeholder, textarea::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 0.7;
 }
+
+/* Specific fix for icons in light mode */
+.sidebar-icon i,
+.sidebar-icon span {
+  color: hsl(var(--muted-foreground));
+}
+
+.sidebar-icon:hover i,
+.sidebar-icon:hover span,
+.sidebar-icon.bg-secondary i,
+.sidebar-icon.bg-secondary span {
+  color: hsl(var(--primary-foreground));
+}
+
+/* Header icons fix */
+header button i,
+header a i {
+  color: hsl(var(--muted-foreground));
+}
+
+header button:hover i,
+header a:hover i {
+  color: hsl(var(--foreground));
+}
+
+/* Ensure card icons are visible */
+.card i {
+  color: hsl(var(--muted-foreground));
+}
