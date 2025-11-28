@@ -7,6 +7,8 @@ const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db/database');
 const Stream = require('../models/Stream');
 const Playlist = require('../models/Playlist');
+const Video = require('../models/Video');
+
 let ffmpegPath;
 if (fs.existsSync('/usr/bin/ffmpeg')) {
   ffmpegPath = '/usr/bin/ffmpeg';
@@ -15,7 +17,6 @@ if (fs.existsSync('/usr/bin/ffmpeg')) {
   ffmpegPath = ffmpegInstaller.path;
   console.log('Using bundled FFmpeg at:', ffmpegPath);
 }
-const Video = require('../models/Video');
 const activeStreams = new Map();
 const streamLogs = new Map();
 const streamRetryCount = new Map();

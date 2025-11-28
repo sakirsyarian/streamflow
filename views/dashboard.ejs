@@ -613,8 +613,8 @@
         document.getElementById('cpu-usage').textContent = data.cpu.usage;
         document.getElementById('cpu-bar').style.width = data.cpu.usage + '%';
         
-        document.getElementById('memory-usage').textContent = data.memory.usedFormatted || data.memory.used + ' MB';
-        document.getElementById('memory-total').textContent = '/ ' + (data.memory.totalFormatted || data.memory.total + ' MB');
+        document.getElementById('memory-usage').textContent = data.memory.usedFormatted || data.memory.used;
+        document.getElementById('memory-total').textContent = '/ ' + (data.memory.totalFormatted || data.memory.total);
         document.getElementById('memory-bar').style.width = data.memory.usagePercent + '%';
         
         if (data.network) {
